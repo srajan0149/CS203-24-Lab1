@@ -1,0 +1,51 @@
+#main-container{
+    min-height: 75vh;
+}
+
+.plain-links{
+    text-decoration: none;
+    color: inherit;
+}
+
+.plain-links:hover{
+    text-decoration: underline;
+    color: inherit;
+}
+
+   /* Style the buttons that are used to open and close the accordion1
+ panel */
+.accordion1 {
+    color: #444;
+    cursor: pointer;
+    width: 60%;
+    text-align: left;
+    border: 0.2px solid black;
+    border-radius: 5px;
+}
+
+.accordion1-head{
+    width: 100%;
+}
+
+.accordion1-body>div{
+    width: 100%;
+}
+
+/* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+.accordion1-head:hover{
+    background-color: #ccc;
+}
+
+.accordion1-active{
+    background-color: #ddd;
+}
+
+/* Style the accordion1 panel. Note: hidden by default */
+.accordion1-body {
+        display: none;
+    overflow: hidden;
+}
+
+.accordion1-body>div:nth-child(even){
+    background: #eee;
+}

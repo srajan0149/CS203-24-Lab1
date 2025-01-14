@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}
+Course Catalogue
+{% endblock %}
+
+{% block content %}
+{% if (info[0]==-1)or((info[0]==0)) %}
+
+<div class="alert alert-{{'danger' if info[0] else 'primary'}}"" role="alert">
+  {{info[1]}}
+</div>
+{% endif %}
+
+{% if data %}
+    <h2>Course Catalogue</h2><a href="{{url_for('manage_courses')}}" class="btn btn-primary">Manage Courses</a>
+    {% for branch in data %}
+    <div class="accordion1 my-2">
+        <div class="accordion1-head align-middle p-3">{{branch}}</div>
+        <div class="accordion1-body py-4">
+            {% set i = 0 %}
+            {% for course in data[branch] %}
+                {% set i = i +1 %}
+                <div class="align-middle ps-4 p-3"><a href="{{url_for('course',branch=branch,code=course)}}"> {{course}} </a></div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <p>No data found</p>
+{% endif %}
+<script>
+var acc = document.getElementsByClassName("accordion1-head");
+
+for (let i = 0; i < acc.length; i++) {
+  acc[i].addEventListener("click", function() {
+    this.classList.toggle("accordion1-active");
+    var panel = this.parentElement.children[1];
+    if (panel.style.display === "block") {
+      panel.style.display = "none";
+    } else {
+      panel.style.display = "block";
+    }
+  });
+} 
+</script>
+{% endblock %}

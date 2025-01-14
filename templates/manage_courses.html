@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}
+Course Catalogue
+{% endblock %}
+
+{% block content %}
+
+{% if data %}
+    <h2>Course Catalogue</h2><button type="submit" class="btn btn-secondary" id="save-changes">Save Changes</button><button class="btn btn-secondary mx-1" id="undo-changes">Undo Changes</button>
+    {% for branch in data %}
+    <div class="accordion1 my-2">
+        <div class="accordion1-head align-middle p-3">{{branch}}</div>
+        <div class="accordion1-body px-4">
+            {% for course in data[branch] %}
+            <div class="row align-items-start p-3"><a class="plain-links col-9" data-code="{{branch+'/'+course}}" href="{{url_for('course',branch=branch,code=course)}}"> {{course}} </a> <button class="remove btn btn-secondary col">Remove</button></div>
+            {% endfor %}
+        </div>
+        <a class="btn btn-primary m-2" href="/add_course_form/{{branch}}">Add Course</a>
+    </div>
+    {% endfor %}
+{% else %}
+    <p>No data found</p>
+{% endif %}
+<script>
+var state = 0;
+let acc = document.getElementsByClassName("accordion1-head");
+
+for (let i = 0; i < acc.length; i++) {
+  acc[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var panel = this.parentElement.children[1];
+    if (panel.style.display === "block") {
+      panel.style.display = "none";
+    } else {
+      panel.style.display = "block";
+    }
+  });
+}
+
+let removeButtons = document.querySelectorAll(".remove");
+let coursesToRemove = [];
+
+for(let i=0; i<removeButtons.length;i++){
+    removeButtons[i].addEventListener("click",function(){
+        let code = this.parentElement.children[0].dataset.code;
+        if(this.textContent=="Remove"){
+            state += 1;
+            this.classList.toggle("btn-info");
+            this.classList.toggle("btn-danger");
+            this.textContent = "Will be removed";
+            coursesToRemove.push(code);
+            console.log(code);
+        }else{
+            state -= 1;
+            this.classList.toggle("btn-info");
+            this.classList.toggle("btn-danger");
+            this.textContent = "Remove";
+            coursesToRemove.splice(coursesToRemove.indexOf(code));
+        }
+    });
+}
+
+let saveChanges = document.getElementById("save-changes");
+saveChanges.onclick =()=>{
+    fetch("/save_changes", {
+        method: "POST",
+        redirect: 'follow',
+        headers: {'Content-Type': 'application/json'}, 
+        body: JSON.stringify({
+            type:"remove",
+            courses:coursesToRemove
+        })
+}).then(response=>{
+    alert("Course successfully removed");
+    coursesToRemove = [];
+    state = 0;
+    location.reload();
+}).catch(error => console.error('Error:', error));;
+    state = 0;
+};
+let undoChanges = document.getElementById("undo-changes");
+undoChanges.onclick =()=>{
+    coursesToRemove = [];
+    state = 0;
+    location.reload();
+};
+
+window.onbeforeunload = (event) =>{
+    if(state){
+        alert("You have not saved the changes. Please save or undo your changes to continue.");
+        event.preventDefault();
+    }
+}
+</script>
+{% endblock %}
