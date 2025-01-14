@@ -2,33 +2,36 @@ from flask import Flask, render_template, json, request, redirect, url_for
 import logging
 from opentelemetry import trace,metrics
 
-#from opentelemetry import trace
-
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# creating tracers
 default_tracer = trace.get_tracer("default.tracer")
 new_course_tracer = trace.get_tracer("new_course.tracer")
 course_tracer = trace.get_tracer("course.tracer")
 
+# creating meter
 meter = metrics.get_meter("default.meter")
 
+# page counter
 counter = meter.create_counter(
     "page_visits",
     description="number of times page is visited"
 )
 
+# course counter
 course_counter = meter.create_counter(
     "course",
     description="number of courses added"
 )
 
+# load json file in memory
 with open("courses.json") as file:
         data = json.load(file)
         logger.info("Database loaded successfully")
 
-
+# save updated data into json file
 def save_data(data):
     with default_tracer.start_as_current_span("save_data") as span:
         trace.get_current_span().set_attribute("operation.status","running")
@@ -38,19 +41,19 @@ def save_data(data):
         logger.info("Updated database")
         trace.get_current_span().set_attribute("operation.status","successful")
 
-
+# home page
 @app.route("/")
 def index():
     counter.add(1,{"page":"/"})
     return render_template("index.html",page='index')
 
-
+# course catalog
 @app.route("/courses")
 def courses(info=""):
         counter.add(1,{"page":"/courses"})
         return render_template("courses.html",page='courses',data=data, info=info)
 
-
+# course under <branch> with code <code>
 @app.route("/course/<branch>/<code>")
 def course(branch,code):
     with course_tracer.start_as_current_span(f"course:{branch}{code}") as span:
@@ -60,13 +63,13 @@ def course(branch,code):
         trace.get_current_span().set_attribute("operation.method",request.method)
         return render_template("course.html",data=data[branch][code])
 
-
+# course add/remove page
 @app.route("/manage_courses")
 def manage_courses():
         counter.add(1,{"page":"/manage_courses"})
         return render_template("manage_courses.html",data=data)
 
-
+# request handler for changes
 @app.route("/save_changes",methods=["GET","POST"])
 def save_changes():
         logger.info(request.headers)
@@ -105,14 +108,14 @@ def save_changes():
         logger.info("Invalid request")
         return redirect(url_for("courses",info=[-1,"Invalid request"]))
 
-
+# new course form
 @app.route("/add_course_form/<branch>")
 def add_course_form(branch):
         if branch in data:
             return render_template("course_form.html",branch=branch)
         return render_template("404.html")
 
-
+# redirector
 @app.route("/redirected")
 def redirected(info):
     return render_template("/courses.html",data=data,info=info)
